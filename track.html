@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สถานะคิว | Lumina</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="menu-bg">
+    <div class="container" style="max-width:600px; margin:auto; padding:20px; text-align:center; color:white;">
+        <button class="back-btn" onclick="location.href='index.html'" style="margin-bottom: 20px;">← หน้าหลัก</button>
+        <h1 style="margin:0 0 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">📋 คิวอาหาร</h1>
+
+        <div style="background:rgba(40, 167, 69, 0.9); padding:20px; border-radius:20px; margin-bottom:20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+            <h2 style="margin-bottom: 15px; font-size: 1.5rem;">✅ เสร็จแล้ว (มารับได้เลย)</h2>
+            <div id="doneList" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+                </div>
+        </div>
+
+        <div style="background:rgba(255, 193, 7, 0.9); color:#444; padding:20px; border-radius:20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+            <h2 style="margin-bottom: 15px; font-size: 1.5rem;">🔥 กำลังปรุง...</h2>
+            <div id="cookingList" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔴 ใส่ URL ของคุณตรงนี้ (อันเดียวกับใน js/app.js)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbym7JvkK8GzTeyZ_By8a0Hh0qupyR0mDbX869jwaBsBHMlM44f_TSaCSvh04RcA-iIR/exec'; 
+
+        function loadQueue() {
+            fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(orders => {
+                const doneDiv = document.getElementById("doneList");
+                const cookDiv = document.getElementById("cookingList");
+
+                // กรองออเดอร์เสร็จแล้ว
+                const doneOrders = orders.filter(o => o.status === 'done');
+                doneDiv.innerHTML = doneOrders.length ? doneOrders.map(o => 
+                    `<div style="background:white; color:#28a745; padding:8px 20px; border-radius:30px; font-weight:bold; font-size:1.2rem; box-shadow:0 2px 5px rgba(0,0,0,0.1);">${o.name} (${o.cls})</div>`
+                ).join("") : "<p style='width:100%; opacity:0.8;'>ยังไม่มีรายการ</p>";
+
+                // กรองออเดอร์กำลังทำ
+                const cookOrders = orders.filter(o => o.status === 'cooking');
+                cookDiv.innerHTML = cookOrders.length ? cookOrders.map(o => 
+                    `<div style="background:white; color:#e0a800; padding:8px 20px; border-radius:30px; font-weight:bold; font-size:1.1rem; box-shadow:0 2px 5px rgba(0,0,0,0.1);">${o.name} (${o.cls})</div>`
+                ).join("") : "<p style='width:100%; opacity:0.8;'>ว่าง</p>";
+            });
+        }
+
+        // โหลดข้อมูลทุกๆ 5 วินาที (Real-time)
+        loadQueue();
+        setInterval(loadQueue, 5000); 
+    </script>
+</body>
+</html>

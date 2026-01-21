@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เลือกชุด | Lumina Shabu</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Animation ปุ่มเด้ง */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+
+        /* 🕊️ Animation นกพิราบ (Dove Effect) */
+        .dove-particle {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: flyUp 1.2s ease-out forwards;
+            filter: drop-shadow(0 0 5px white);
+        }
+        @keyframes flyUp {
+            0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(-50%, -150px) scale(1.5) rotate(-20deg); opacity: 0; }
+        }
+    </style>
+</head>
+
+<body class="menu-bg">
+
+    <div class="moonlight-container">
+        <div class="moonlight" style="top:15%;left:10%"></div>
+        <div class="moonlight" style="top:60%;left:70%"></div>
+    </div>
+    <div class="petal-container"></div>
+
+    <div id="closedModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; text-align:center; color:white; flex-direction: column;">
+        <div>
+            <h1 style="font-size:3rem; margin-bottom: 20px;">🕊️ ร้านปิดแล้วครับ</h1>
+            <p style="font-size:1.2rem;">ขอบคุณที่อุดหนุน แล้วเจอกันใหม่นะ!</p>
+            <button onclick="location.href='index.html'" style="margin-top:20px; padding:10px 20px; background:white; color:black; border:none; border-radius:50px; cursor:pointer;">กลับหน้าหลัก</button>
+        </div>
+    </div>
+
+    <div id="leaderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9998; justify-content:center; align-items:center;">
+        <div style="background: white; width: 90%; max-width: 350px; border-radius: 15px; padding: 25px; text-align: center; position: relative; box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);">
+            <span onclick="document.getElementById('leaderModal').style.display='none'" style="position:absolute; top:10px; right:15px; font-size:2rem; cursor:pointer; color:#888;">&times;</span>
+            <h2 style="color:#6c5ce7; margin-bottom:20px; font-family:'Sarabun', sans-serif;">🏆 ห้องไหนคือ No.1?</h2>
+            <div id="leaderContent" style="text-align:left; min-height: 100px;">
+                ⏳ กำลังรวบรวมข้อมูล...
+            </div>
+        </div>
+    </div>
+
+    <div class="menu-container page-content">
+
+        <button class="back-btn" onclick="location.href='index.html'">← Home</button>
+
+        <h2 class="menu-title">เลือกชุด</h2>
+
+        <div style="text-align: center; margin-bottom: 25px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <button onclick="randomMenu()" style="background: linear-gradient(45deg, #FFD700, #FF8C00); border: none; padding: 10px 20px; border-radius: 50px; color: white; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); cursor: pointer; animation: pulse 2s infinite;">
+                🎲 สุ่มเมนู
+            </button>
+            <button onclick="showLeaderboard()" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe); border: none; padding: 10px 20px; border-radius: 50px; color: white; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); cursor: pointer;">
+                🏆 อันดับห้อง
+            </button>
+        </div>
+
+        <div class="menu-card" onclick="goOrder('A')">
+            <span class="moon">🌙</span>
+            <div class="menu-text">
+                <h3>SET A : Crescent Moon</h3>
+                <p><b>ชุดประหยัด</b> · 39 บาท</p>
+                <small>เส้น + ผักพื้นฐาน, หมูเด้ง 3 ก้อน, ไข่ต้มครึ่งฟอง</small>
+            </div>
+        </div>
+
+        <div class="menu-card recommend" onclick="goOrder('B')">
+            <span class="moon">🌙⭐</span>
+            <div class="menu-text">
+                <h3>SET B : Half Moon</h3>
+                <p><b>ชุดแนะนำ</b> ⭐ · 49 บาท</p>
+                <small>เส้น + ผัก, หมูเด้ง 2 ก้อน, หมูสไลด์ 3–4 ชิ้น, ไส้กรอกไก่</small>
+            </div>
+        </div>
+
+        <div class="menu-card" onclick="goOrder('C')">
+            <span class="moon">🌕</span>
+            <div class="menu-text">
+                <h3>SET C : Full Moon</h3>
+                <p><b>ชุดเสี่ยจัดเต็ม</b> · 59 บาท</p>
+                <small>เส้น + ผัก, หมูสไลด์ (เยอะพิเศษ), เต้าหู้ชีส, ไข่ต้ม 1 ฟอง</small>
+            </div>
+        </div>
+
+        <div style="margin: 40px 0 20px 0; display: flex; align-items: center; gap: 10px; opacity: 0.8;">
+            <div style="height: 1px; background: #ccc; flex: 1;"></div>
+            <span style="color: #666; font-weight: bold;">🍡 เมนูทานเล่น (Shabu Cup)</span>
+            <div style="height: 1px; background: #ccc; flex: 1;"></div>
+        </div>
+
+        <div class="menu-card" onclick="goOrder('CUP_A')" style="border-left: 5px solid #a8c0ff;">
+            <span class="moon">🕊️</span>
+            <div class="menu-text">
+                <h3>Cup A : Pale Dove</h3>
+                <p><b>ซุปน้ำใส</b> · 19 บาท</p>
+                <small>เป็นแก้วมีแค่น้ำซุปกับน้ำจิ่มให้ที่เหลือเลือกเองเลย</small>
+            </div>
+        </div>
+
+        <div class="menu-card" onclick="goOrder('CUP_B')" style="border-left: 5px solid #ff6b6b;">
+            <span class="moon">🌑</span>
+            <div class="menu-text">
+                <h3>Cup B : Crimson Moon</h3>
+                <p><b>ซุปหมาล่า</b> 🌶️ · 19 บาท</p>
+                <small>เป็นแก้วมีแค่น้ำซุปกับน้ำจิ่มให้ที่เหลือเลือกเองเลย</small>
+            </div>
+        </div>
+
+        <div class="menu-card" onclick="goOrder('CUP_C')" style="border-left: 5px solid #485563;">
+            <span class="moon">🌌</span>
+            <div class="menu-text">
+                <h3>Cup C : Eternal Dream</h3>
+                <p><b>ซุปน้ำดำ</b> · 19 บาท</p>
+                <small>เป็นแก้วมีแค่น้ำซุปกับน้ำจิ่มให้ที่เหลือเลือกเองเลย</small>
+            </div>
+        </div>
+
+    </div> 
+
+    <script>
+        // 1. เช็ค Login
+        if (!sessionStorage.getItem("role")) {
+            location.href = "login.html";
+        }
+
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbym7JvkK8GzTeyZ_By8a0Hh0qupyR0mDbX869jwaBsBHMlM44f_TSaCSvh04RcA-iIR/exec'; 
+        let menuData = {};
+
+        // 🚀 STEP 1: เช็คสถานะร้านจาก Cache (เร็ว)
+        const cachedData = localStorage.getItem("menuData");
+        if (cachedData) {
+            console.log("🚀 Fast Check: ใช้ข้อมูลเก่าเช็คสถานะ");
+            const data = JSON.parse(cachedData);
+            menuData = data; 
+            if (data.status === "CLOSED") {
+                document.getElementById("closedModal").style.display = "flex";
+            }
+        }
+
+        // 🌐 STEP 2: โหลดข้อมูลจริง (อัปเดต)
+        fetch(SCRIPT_URL + "?type=menu")
+        .then(res => res.json())
+        .then(data => {
+            console.log("🌐 ข้อมูลใหม่มาแล้ว");
+            menuData = data;
+            localStorage.setItem("menuData", JSON.stringify(data)); 
+
+            // อัปเดตสถานะร้าน
+            if (data.status === "CLOSED") {
+                document.getElementById("closedModal").style.display = "flex";
+            } else {
+                document.getElementById("closedModal").style.display = "none";
+            }
+        })
+        .catch(err => console.error("โหลดข้อมูลไม่สำเร็จ"));
+
+        // --- ฟังก์ชัน 1: สุ่มเมนู ---
+        function randomMenu() {
+            if (!menuData.sets) return alert("⏳ กำลังโหลดข้อมูล... ใจเย็นๆ นะวัยรุ่น");
+            const keys = Object.keys(menuData.sets);
+            const randomKey = keys[Math.floor(Math.random() * keys.length)];
+            const item = menuData.sets[randomKey];
+
+            if(confirm(`✨ ดวงของคุณสมพงศ์กับ...\n\n👉 ${item.name} 👈\n\nจะรับเมนูนี้เลยไหม?`)) {
+                goOrder(randomKey);
+            }
+        }
+
+        // --- ฟังก์ชัน 2: ไปหน้าสั่ง ---
+        function goOrder(setId) {
+            localStorage.setItem("selectedSet", setId);
+            window.location.href = "order.html";
+        }
+
+        // --- ฟังก์ชัน 3: จัดอันดับห้อง (Leaderboard) ---
+        function showLeaderboard() {
+            document.getElementById("leaderModal").style.display = "flex";
+            document.getElementById("leaderContent").innerHTML = "<p style='text-align:center'>⏳ กำลังส่องกล้องดูคะแนน...</p>";
+            
+            fetch(SCRIPT_URL + "?type=leaderboard")
+            .then(res => res.json())
+            .then(data => {
+                let html = '<table style="width:100%; border-collapse:collapse;">';
+                data.forEach((item, index) => {
+                    let rank = index + 1;
+                    let medal = rank === 1 ? "🥇" : (rank === 2 ? "🥈" : (rank === 3 ? "🥉" : rank + "."));
+                    let color = rank === 1 ? "#d35400" : "#333"; 
+                    let bg = rank === 1 ? "background:linear-gradient(90deg, #fff9c4, white);" : "";
+                    
+                    html += `<tr style="border-bottom:1px solid #eee; ${bg}">
+                        <td style="padding:12px; font-size:1.5rem;">${medal}</td>
+                        <td style="padding:12px; font-weight:bold; color:${color}; font-size:1.1rem;">ห้อง ${item.cls}</td>
+                        <td style="padding:12px; text-align:right; font-weight:bold;">${item.count} ถ้วย</td>
+                    </tr>`;
+                });
+                html += '</table>';
+                
+                if(data.length === 0) html = "<p style='text-align:center; color:#888;'>ยังไม่มีการต่อสู้เกิดขึ้น...</p>";
+                document.getElementById("leaderContent").innerHTML = html;
+            });
+        }
+
+        // --- ฟังก์ชัน 4: เอฟเฟกต์นกพิราบตอนกด ---
+        document.addEventListener('click', function(e) {
+            // ไม่ให้เกิดนกถ้ากดใน Modal
+            if(e.target.closest('#leaderModal') || e.target.closest('#closedModal')) return;
+
+            const dove = document.createElement('div');
+            dove.className = 'dove-particle';
+            dove.innerHTML = '🕊️'; 
+            dove.style.left = e.clientX + 'px';
+            dove.style.top = e.clientY + 'px';
+            document.body.appendChild(dove);
+            setTimeout(() => { dove.remove(); }, 1200);
+        });
+    </script>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

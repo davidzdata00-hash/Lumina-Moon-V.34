@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="order-page">
+
+<div class="order-card">
+
+  <button class="back-btn" onclick="history.back()">← กลับ</button>
+
+  <h2 class="section-title">รายการที่เลือก</h2>
+
+  <select id="setName" disabled class="select-main"></select>
+  <div id="setDetail" class="card"></div>
+
+  <h3 class="sub-title">เลือกซุป</h3>
+  <div id="soupGroup" class="topping-group"></div>
+
+  <h3 class="sub-title">Topping เพิ่ม</h3>
+  <div id="toppingGroup" class="topping-group"></div>
+
+  <h3 class="sub-title" style="text-align: right; margin-top: 20px;">
+    รวมทั้งหมด: <span id="totalPrice" style="color: #4facfe; font-size: 1.5rem;">0</span> บาท
+  </h3>
+
+  <button class="confirm-btn main-action" id="openBillBtn" type="button">
+     ยืนยันสั่งอาหาร ✨
+  </button>
+
+</div>
+
+<div id="billModal" class="bill-modal">
+  <div class="bill-card fade-in">
+    <h3 style="color: #333; margin-bottom: 15px;">🧾 สรุปบิล</h3>
+    
+    <div id="billDetail" style="text-align: left; background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 15px;"></div>
+    
+    <h2 style="color: #2c3e50;">รวม <span id="billTotal" style="color: #4facfe;"></span> บาท</h2>
+
+    <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block; margin: 10px 0; border: 1px solid #eee;">
+        <img src="img/qrcode.jpg" class="qr-img" style="width: 180px; display: block;">
+    </div>
+    
+    <p style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">แนบสลิปโอนเงินด้านล่าง</p>
+    <input type="file" id="slipInput" accept="image/*" class="upload-input">
+
+    <div class="modal-actions">
+        <button class="confirm-btn pay-action" onclick="submitOrder()" type="button">
+            ✅ ยืนยันการชำระเงิน
+        </button>
+        
+        <button class="cancel-btn" onclick="closeBill()" type="button">
+            ยกเลิก
+        </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/order.js"></script>
+</body>
+</html>

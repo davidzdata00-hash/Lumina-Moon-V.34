@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lumina Snap 📸</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; background: #000; color: white;
+            font-family: 'Sarabun', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            height: 100vh; overflow: hidden;
+        }
+
+        /* พื้นที่แสดงกล้อง */
+        .camera-container {
+            position: relative;
+            width: 100%; max-width: 450px; /* ขนาดมือถือ */
+            height: 100%; 
+            overflow: hidden; background: #222;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        video {
+            width: 100%; height: 100%; object-fit: cover;
+            transform: scaleX(-1); /* กลับด้านเหมือนกระจกเงา (สำหรับกล้องหน้า) */
+        }
+        
+        /* 🔥 ส่วนแสดงกรอบรูป (Preview) ทับบนกล้อง 🔥 */
+        .overlay-frame-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* ให้กดทะลุไปโดนปุ่มได้ */
+            object-fit: fill; /* ยืดรูปให้เต็มจอ */
+            z-index: 5;
+        }
+
+        /* ปุ่มควบคุม */
+        .controls {
+            position: absolute; bottom: 30px; left: 0; width: 100%;
+            display: flex; justify-content: center; align-items: center; gap: 30px;
+            z-index: 10;
+        }
+        
+        .btn-snap {
+            width: 70px; height: 70px;
+            background: white; border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%; cursor: pointer;
+            box-shadow: 0 0 20px rgba(168, 192, 255, 0.5);
+            transition: transform 0.1s;
+        }
+        .btn-snap:active { transform: scale(0.9); background: #a8c0ff; }
+
+        .btn-icon {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 12px; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem;
+            backdrop-filter: blur(5px);
+            width: 50px; height: 50px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* หน้า Preview รูปที่ถ่ายแล้ว */
+        #resultModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 999;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #resultImg {
+            width: 80%; max-width: 400px; border-radius: 10px;
+            box-shadow: 0 0 30px rgba(168, 192, 255, 0.3);
+            margin-bottom: 20px;
+            border: 2px solid #a8c0ff;
+        }
+        .result-actions { display: flex; gap: 15px; }
+        
+        .btn-save {
+            background: linear-gradient(45deg, #6c5ce7, #a8c0ff); color: white; border: none;
+            padding: 12px 30px; border-radius: 50px; font-weight: bold; font-size: 1.1rem;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+        .btn-retry {
+            background: #444; color: white; border: none;
+            padding: 12px 30px; border-radius: 50px; font-size: 1.1rem; cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="camera-container">
+        <video id="webcam" autoplay playsinline></video>
+        
+        <img src="frame.png" class="overlay-frame-img" onerror="this.style.display='none'">
+
+        <div class="controls">
+            <button class="btn-icon" onclick="switchCamera()">🔄</button>
+            <button class="btn-snap" onclick="takePhoto()"></button>
+            <button class="btn-icon" onclick="location.href='index.html'">🏠</button>
+        </div>
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <div id="resultModal">
+        <h2 style="color:#a8c0ff; font-weight:300; letter-spacing:1px; margin-bottom:10px;">✨ Captured!</h2>
+        <img id="resultImg" src="">
+        <p style="color:#aaa; font-size:0.8rem; margin-top:-10px; margin-bottom:20px;">กดปุ่ม Save หรือกดค้างที่รูปเพื่อบันทึก</p>
+        
+        <div class="result-actions">
+            <button class="btn-retry" onclick="closeModal()">ถ่ายใหม่</button>
+            <a id="downloadLink" download="lumina-snap.png">
+                <button class="btn-save">💾 Save</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        let currentStream;
+        let facingMode = 'user'; // เริ่มต้นที่กล้องหน้า
+
+        // 1. เปิดกล้อง
+        async function startCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            try {
+                const constraints = {
+                    video: { 
+                        facingMode: facingMode,
+                        width: { ideal: 1080 },
+                        height: { ideal: 1920 } 
+                    },
+                    audio: false
+                };
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+                
+                // ถ้าเป็นกล้องหลัง ไม่ต้องกลับด้าน
+                video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+            } catch (err) {
+                alert("ไม่สามารถเข้าถึงกล้องได้: " + err);
+            }
+        }
+
+        // 2. สลับกล้อง
+        function switchCamera() {
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            startCamera();
+        }
+
+        // 3. ถ่ายรูป & แปะกรอบ (หัวใจสำคัญ)
+        function takePhoto() {
+            const context = canvas.getContext('2d');
+            
+            // ตั้งขนาด Canvas ตามวิดีโอจริง
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // A. วาดภาพจากกล้อง
+            if (facingMode === 'user') {
+                // ถ้ากล้องหน้า ต้องกลับด้านภาพก่อนวาด
+                context.translate(canvas.width, 0);
+                context.scale(-1, 1);
+            }
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Reset Transform กลับมาเพื่อวาดกรอบ
+            context.setTransform(1, 0, 0, 1, 0, 0);
+
+            // B. วาดกรอบรูปทับลงไป
+            const frameImg = new Image();
+            frameImg.src = 'frame.png'; // 🔴 ชื่อไฟล์รูปกรอบ
+
+            // ต้องรอให้โหลดรูปกรอบเสร็จก่อน ถึงจะวาดได้
+            frameImg.onload = function() {
+                // วาดกรอบเต็มพื้นที่ Canvas
+                context.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+
+                // C. แปลงเป็นรูปภาพเพื่อแสดงผล
+                const dataUrl = canvas.toDataURL('image/png');
+                document.getElementById('resultImg').src = dataUrl;
+                document.getElementById('downloadLink').href = dataUrl;
+                
+                // โชว์หน้า Preview
+                document.getElementById('resultModal').style.display = 'flex';
+            };
+
+            frameImg.onerror = function() {
+                alert("หาไฟล์ frame.png ไม่เจอ! กรุณาเช็คชื่อไฟล์ครับ");
+                // ถ้ารูปกรอบไม่มา ก็โชว์รูปเปล่าๆ ไปก่อน
+                const dataUrl = canvas.toDataURL('image/png');
+                document.getElementById('resultImg').src = dataUrl;
+                document.getElementById('resultModal').style.display = 'flex';
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        // เริ่มทำงานทันที
+        startCamera();
+    </script>
+</body>
+</html>
